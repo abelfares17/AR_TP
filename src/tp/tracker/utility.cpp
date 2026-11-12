@@ -37,7 +37,7 @@ bool detectChessboard( const Mat &rgbimage, vector<Point2f> &pointbuf, const Siz
             // detect the chessboard --> see findChessboardCorners
             // found = ...
             /******************************************************************/
-
+            found = cv::findChessboardCorners(rgbimage, boardSize, pointbuf);
 
             // if a chessboard is found refine the position of the points in a window 11x11 pixel
             // use the default value for the termination criteria --> TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 )
@@ -49,12 +49,13 @@ bool detectChessboard( const Mat &rgbimage, vector<Point2f> &pointbuf, const Siz
                 // convert the image in "rgbimage" to gray level and save it in "viewGrey"
                 // --> cvtColor with CV_BGR2GRAY option
                 /******************************************************************/
-
-
+                cvtColor(rgbimage, viewGrey, cv::COLOR_BGR2GRAY);
+                
                 /******************************************************************/
                 // refine the corner location in "pointbuf" using "viewGrey"
                 // --> see cornerSubPix
                 /******************************************************************/
+                cv::cornerSubPix(viewGrey, pointbuf, Size(11, 11), Size(-1, -1), TermCriteria(TermCriteria::EPS + TermCriteria::MAX_ITER, 30, 0.1));
 
             }
             break;
@@ -65,7 +66,7 @@ bool detectChessboard( const Mat &rgbimage, vector<Point2f> &pointbuf, const Siz
             // detect the circles --> see findCirclesGrid
             // found = ...
             /******************************************************************/
-
+            found = cv::findCirclesGrid(rgbimage, boardSize, pointbuf, cv::CALIB_CB_SYMMETRIC_GRID);
 
             break;
 
@@ -75,7 +76,7 @@ bool detectChessboard( const Mat &rgbimage, vector<Point2f> &pointbuf, const Siz
             // detect the circles --> see findCirclesGrid using the options CALIB_CB_ASYMMETRIC_GRID | CALIB_CB_CLUSTERING
             // found = ...
             /******************************************************************/
-
+            found = cv::findCirclesGrid(rgbimage, boardSize, pointbuf, cv::CALIB_CB_ASYMMETRIC_GRID | cv::CALIB_CB_CLUSTERING);
 
             break;
 
@@ -194,7 +195,7 @@ void calcChessboardCorners( const Size &boardSize, float squareSize, vector<Poin
                     // create a Point2f(x,y) according to the position j,i and a square
                     // size of squareSize. Add it to corners (using push_back...)
                     /******************************************************************/
-
+                    corners.push_back(Point2f(j*squareSize, i*squareSize));
 
                 }
             break;
@@ -208,7 +209,7 @@ void calcChessboardCorners( const Size &boardSize, float squareSize, vector<Poin
                     // that x is generate using the formula (2*j + i % 2)*squareSize
                     //  Add it to corners (using push_back...)
                     /******************************************************************/
-
+                    corners.push_back(Point2f((2*j + i % 2)*squareSize, i*squareSize));
 
                 }
             break;

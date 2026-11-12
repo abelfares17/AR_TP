@@ -64,17 +64,20 @@ int main(int argc, char** argv)
     /******************************************************************/
     // create a window to display the image --> see namedWindow
     /******************************************************************/
-
+    cv::namedWindow(WINDOW_NAME, cv::WINDOW_AUTOSIZE);
 
     /******************************************************************/
     // read the input video with capture
     /******************************************************************/
-
+    capture.open(inputFilename);
 
     /******************************************************************/
     // check it is really opened
     /******************************************************************/
-
+    if (!capture.isOpened()){
+        cerr << "Could not open video file " << inputFilename << endl;
+        return EXIT_FAILURE;
+    }
 
 
 
@@ -87,12 +90,15 @@ int main(int argc, char** argv)
         /******************************************************************/
         // get the new frame from capture and copy it to view
         /******************************************************************/
-
+        bool ret = capture.read(view);
 
         /******************************************************************/
         // if no more images to process exit the loop
         /******************************************************************/
-
+        if (!ret || view.empty()){
+            cout << "No more images to process" << endl;
+            break;
+        }
 
 
         // Measure the execution time, get time before function call
@@ -102,7 +108,7 @@ int main(int argc, char** argv)
         // call the function that detects the chessboard on the image
         // found = detectChessboard...
         /******************************************************************/
-
+        found = detectChessboard(view, pointbuf, boardSize, pattern);
 
         // get time after function call and display info
         t = (static_cast<double>(getTickCount()) - t) / getTickFrequency();
@@ -114,23 +120,30 @@ int main(int argc, char** argv)
         // if the chessboard is found draw the corners on top of it
         // --> see drawChessboardCorners
         /******************************************************************/
-
+        if (found){
+            cv::drawChessboardCorners(view, boardSize, Mat(pointbuf), found);
+        }
 
         /******************************************************************/
         // show the image inside the window --> see imshow
         /******************************************************************/
-
+        cv::imshow(WINDOW_NAME, view);
 
         // wait 20ms for user input before processing the next frame
         // Any user input will stop the execution
-        if(waitKey(10) >= 0)
+        const int key = waitKey(20);
+
+        if(key == 'q' ||
+        getWindowProperty(WINDOW_NAME, WND_PROP_VISIBLE) < 1)
+        {
             break;
+        }
     }
 
     /******************************************************************/
     // release the video resource
     /******************************************************************/
-
+    capture.release();
 
     return EXIT_SUCCESS;
 }

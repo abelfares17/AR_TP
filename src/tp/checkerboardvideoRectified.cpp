@@ -71,22 +71,26 @@ int main(int argc, char** argv)
     /******************************************************************/
     // create a window using WINDOW_NAME as name to display the image --> see namedWindow
     /******************************************************************/
-
+    cv::namedWindow(WINDOW_NAME, cv::WINDOW_AUTOSIZE);
 
     /******************************************************************/
     // create a second window using WINDOW_RECTIFIED as name to display the rectified image
     /******************************************************************/
-
+    cv::namedWindow(WINDOW_RECTIFIED, cv::WINDOW_AUTOSIZE);
 
     /******************************************************************/
     // read the input video with capture (same as before)
     /******************************************************************/
-
+    capture.open(inputFilename);
 
     /******************************************************************/
     // check it is really opened
     /******************************************************************/
-
+    if (!capture.isOpened())
+    {
+        cerr << "Could not open the input video: " << inputFilename << endl;
+        return EXIT_FAILURE;
+    }
 
 
 
@@ -97,7 +101,7 @@ int main(int argc, char** argv)
     // size of the squares is 25
     // call to calcChessboardCorners
     /******************************************************************/
-
+    calcChessboardCorners(boardSize, 25.0f, objectPoints, pattern);
 
     // processing loop
     while(true)
@@ -106,18 +110,21 @@ int main(int argc, char** argv)
         /******************************************************************/
         // get the new frame from capture and copy it to view
         /******************************************************************/
-
+        bool ret = capture.read(view);
 
         /******************************************************************/
         // if no more images to process exit the loop
         /******************************************************************/
-
+        if (!ret){
+            cout << "No more images to process" << endl;
+            break;
+        }
 
 
         /******************************************************************/
         // call the function that detects the chessboard on the image
         /******************************************************************/
-        // found = detectChessboard...
+        found = detectChessboard(view, pointbuf, boardSize, pattern);
 
 
         cout << ((!found) ? ("No ") : ("")) << "chessboard detected!" << endl;
@@ -130,14 +137,14 @@ int main(int argc, char** argv)
             // --> see findHomography
             // https://docs.opencv.org/4.6.0/d9/d0c/group__calib3d.html#ga4abc2ece9fab9398f2e560d53c8c9780
             /******************************************************************/
-
+            Mat H = cv::findHomography(pointbuf, objectPoints, cv::RANSAC);
 
             /******************************************************************/
             // use the estimated homography to rectify the image
             // --> see warpPerspective
             // https://docs.opencv.org/4.6.0/da/d54/group__imgproc__transform.html#gaf73673a7e8e18ec6963e3774e6a94b87
             /******************************************************************/
-
+            cv::warpPerspective(view, rectified, H, view.size());
         }
         else
         {
@@ -145,24 +152,26 @@ int main(int argc, char** argv)
             // otherwise copy the original image in rectified
             // Mat.copyTo()
             /******************************************************************/
-
+            view.copyTo(rectified);
         }
 
         /******************************************************************/
         // if the chessboard is found draw the cornerns on top of it
         // --> see drawChessboardCorners
         /******************************************************************/
-
+        if (found){
+            cv::drawChessboardCorners(view, boardSize, Mat(pointbuf), found);
+        }
 
         /******************************************************************/
         // show the image inside the window --> see imshow
         /******************************************************************/
-
+        cv::imshow(WINDOW_NAME, view);
 
         /******************************************************************/
         // show the rectified image inside the window --> see imshow
         /******************************************************************/
-
+        cv::imshow(WINDOW_RECTIFIED, rectified);
 
         // wait 20ms for user input before processing the next frame
         // Any user input will stop the execution

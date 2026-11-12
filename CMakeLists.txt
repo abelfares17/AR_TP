@@ -3,6 +3,10 @@ include(ExternalProject)
 
 project( TP_AR VERSION 2026.1.0 LANGUAGES CXX C)
 
+# Export the exact compiler invocations used by CMake. Editors and language
+# servers can consume this file instead of guessing include paths and flags.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 option(BUILD_TUTORIALS "Build OpenCV tutorials" ON)
 option(BUILD_SHARED_LIBS "Build shared libs" ON)
 option(ENABLE_WARNINGS_AS_ERRORS "Treat warnings as errors" OFF)

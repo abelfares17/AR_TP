@@ -73,12 +73,12 @@ int main( int argc, char** argv )
     /******************************************************************/
     // create a window to display the image --> see namedWindow
     /******************************************************************/
-
+    cv::namedWindow(WINDOW_NAME, cv::WINDOW_AUTOSIZE);
 
     /******************************************************************/
     // read the input image from file into "view" --> see imread
     /******************************************************************/
-
+    view = cv::imread(inputFilename, cv::IMREAD_COLOR);
 
     //Measure the execution time, get time before function call
     auto t = static_cast<double>(getTickCount());
@@ -87,7 +87,7 @@ int main( int argc, char** argv )
     // call the function that detects the chessboard on the image
     // found = detectChessboard...
     /******************************************************************/
-
+    found = detectChessboard(view, pointbuf, boardSize, pattern);
 
     // get time after function call and display info
     t = ( static_cast<double>(getTickCount()) - t ) / getTickFrequency( );
@@ -100,12 +100,14 @@ int main( int argc, char** argv )
     // if the chessboard is found draw the cornerns on top of it
     // --> see drawChessboardCorners
     /******************************************************************/
-
+    if (found){
+        cv::drawChessboardCorners(view, boardSize, Mat(pointbuf), found);
+    }
 
     /******************************************************************/
     // show the image inside the window --> see imshow
     /******************************************************************/
-
+    cv::imshow(WINDOW_NAME, view);
 
     // wait for user input before ending --> see waitKey
     (void)waitKey( -1 );
