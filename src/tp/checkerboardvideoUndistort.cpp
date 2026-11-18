@@ -37,27 +37,26 @@ bool loadCameraParameters(const string& calibFilename, Mat& matK, Mat& dist)
     // open the file to read the parameters
     // --> see method open() of FileStorage
     /******************************************************************/
-
+    fs.open(calibFilename, cv::FileStorage::READ);
 
     /******************************************************************/
     // check if the file has been found/opened
     // --> see isOpened()
     /******************************************************************/
-
-
-
-
-
+    if (!fs.isOpened()){
+        cerr << "Failed to open the input calibration file : " << calibFilename << endl;
+        return EXIT_FAILURE;
+    }
 
     /******************************************************************/
     // load the camera matrix from the tag "camera_matrix" of the file
     /******************************************************************/
-
+    fs["camera_matrix"]>>matK;
 
     /******************************************************************/
     // load the distortion coefficients from the tag "distortion_coefficients" of the file
     /******************************************************************/
-
+    fs["distortion_coefficients"]>>dist;
 
     cout << matK << endl;
     cout << dist << endl;
@@ -113,31 +112,32 @@ int main(int argc, char** argv)
     /******************************************************************/
     // create a window using WINDOW_NAME as name to display the image --> see namedWindow
     /******************************************************************/
-
+    cv::namedWindow(WINDOW_NAME, cv::WINDOW_AUTOSIZE);
 
     /******************************************************************/
     // read the input video with capture (same as before)
     /******************************************************************/
-
+    capture.open(inputFilename);
 
     /******************************************************************/
     // check it is really opened
     /******************************************************************/
-
-
-
-
+    if (!capture.isOpened())
+    {
+        cerr << "Could not open the input video: " << inputFilename << endl;
+        return EXIT_FAILURE;
+    }
 
 
     /******************************************************************/
     // call to loadCameraParameters. we want to read the calibration
     // matrix in matK and the distortion coefficients in dist
     /******************************************************************/
+    bool l = loadCameraParameters(calibFilename, matK, dist);
 
-
-
-
-
+    if (!l){
+        return EXIT_FAILURE;
+    }
 
     // processing loop
     while(true)
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
         /******************************************************************/
         // get the new frame from capture and copy it to view
         /******************************************************************/
-
+        capture.read(view);
 
         if(view.empty())
             break;
@@ -166,19 +166,19 @@ int main(int argc, char** argv)
             /******************************************************************/
             // copy the original image into temp --> see Mat.clone()
             /******************************************************************/
-
+            temp = view.clone();
 
             /******************************************************************/
             // apply the undistortion and store the new image in view
             // --> see undistort
             /******************************************************************/
-
+            undistort(temp,view,matK,dist);
 
             /******************************************************************/
             // compute the difference between the two images and store the result in view
             // see --> absdiff
             /******************************************************************/
-
+            absdiff(view, temp, view);
         }
         // if we want to see the undistorted image
         else if(mode == 'u')
@@ -190,13 +190,13 @@ int main(int argc, char** argv)
             /******************************************************************/
             // copy the original image into temp --> see Mat.clone()
             /******************************************************************/
-
+            temp = view.clone();
 
             /******************************************************************/
             // apply the undistortion and store the new image in view
             // --> see undistort
             /******************************************************************/
-
+            undistort(temp,view,matK,dist);
         }
         else
         {
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
         /******************************************************************/
         // show view inside the window --> see imshow
         /******************************************************************/
-
+        imshow(WINDOW_NAME, view);
 
         // wait 20ms for user input before processing the next frame
         // Any user input will stop the execution

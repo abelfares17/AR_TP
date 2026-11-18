@@ -182,7 +182,7 @@ int main(int argc, char** argv)
     /******************************************************************/
     // release the video resource
     /******************************************************************/
-
+    capture.release();
 
     return EXIT_SUCCESS;
 }
